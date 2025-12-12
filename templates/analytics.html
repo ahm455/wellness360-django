@@ -1,0 +1,364 @@
+<div class="container mt-4">
+    <div class="card bg-dark text-light shadow-lg">
+        <div class="card-header bg-secondary bg-gradient">
+            <h3 class="mb-0">
+                <i class="fas fa-chart-line me-2"></i> Your Health Analytics
+            </h3>
+        </div>
+        
+        <div class="card-body">
+            <!-- Quick Stats -->
+            <div class="row mb-4 text-center">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-light mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Avg. Steps</h5>
+                            <h2>{{ avg_steps|default:"0" }}</h2>
+                            <small class="text-light">per day</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-light mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Avg. Sleep</h5>
+                            <h2>{{ avg_sleep|default:"0" }}</h2>
+                            <small class="text-light">hours per night</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-light mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Water Intake</h5>
+                            <h2>{{ avg_water|default:"0" }}</h2>
+                            <small class="text-light">glasses per day</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-dark mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Goal Progress</h5>
+                            <h2>{{ goal_progress|default:"0" }}%</h2>
+                            <small class="text-dark">completed</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card bg-dark text-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-chart-line me-1"></i> Health Data Over Time
+                            </h5>
+                            <canvas id="analyticsChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card bg-dark text-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-chart-pie me-1"></i> Activity Distribution
+                            </h5>
+                            <canvas id="activityPieChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Charts -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card bg-dark text-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-heartbeat me-1"></i> Weekly Progress
+                            </h5>
+                            <canvas id="weeklyChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card bg-dark text-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-tachometer-alt me-1"></i> Performance Metrics
+                            </h5>
+                            <canvas id="performanceChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="card bg-dark text-light">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-table me-1"></i> Recent Health Data
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Steps</th>
+                                    <th>Sleep (hrs)</th>
+                                    <th>Water (glasses)</th>
+                                    <th>Calories</th>
+                                    <th>Mood</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for data in recent_data %}
+                                <tr>
+                                    <td>{{ data.date|default:"-" }}</td>
+                                    <td>{{ data.steps|default:"-" }}</td>
+                                    <td>{{ data.sleep|default:"-" }}</td>
+                                    <td>{{ data.water|default:"-" }}</td>
+                                    <td>{{ data.calories|default:"-" }}</td>
+                                    <td>
+                                        {% if data.mood %}
+                                            <span class="badge bg-{% if data.mood == 'Good' %}success{% elif data.mood == 'Fair' %}warning{% else %}danger{% endif %}">
+                                                {{ data.mood }}
+                                            </span>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">No health data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filter Options -->
+        <div class="card-footer bg-dark border-top border-secondary">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="period" class="form-label">Time Period</label>
+                    <select name="period" id="period" class="form-select bg-dark text-light border-secondary">
+                        <option value="week">Last Week</option>
+                        <option value="month">Last Month</option>
+                        <option value="quarter">Last 3 Months</option>
+                        <option value="year">Last Year</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="metric" class="form-label">Primary Metric</label>
+                    <select name="metric" id="metric" class="form-select bg-dark text-light border-secondary">
+                        <option value="steps">Steps</option>
+                        <option value="sleep">Sleep</option>
+                        <option value="water">Water Intake</option>
+                        <option value="calories">Calories</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="show_trend" name="show_trend" checked>
+                        <label class="form-check-label" for="show_trend">
+                            Show Trend Line
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="show_avg" name="show_avg" checked>
+                        <label class="form-check-label" for="show_avg">
+                            Show Average Line
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-1"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Main Analytics Chart
+    var ctx = document.getElementById('analyticsChart').getContext('2d');
+    var analyticsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_labels|safe|default:"[]" }},
+            datasets: [
+                {
+                    label: 'Steps',
+                    data: {{ steps_data|safe|default:"[]" }},
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    tension: 0.1
+                },
+                {
+                    label: 'Sleep (hours)',
+                    data: {{ sleep_data|safe|default:"[]" }},
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    tension: 0.1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Health Metrics Over Time',
+                    color: '#fff'
+                },
+                legend: {
+                    labels: {
+                        color: '#fff'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#fff' },
+                    grid: { color: 'rgba(255,255,255,0.1)' }
+                },
+                y: {
+                    ticks: { color: '#fff' },
+                    grid: { color: 'rgba(255,255,255,0.1)' }
+                }
+            }
+        }
+    });
+
+    // Activity Pie Chart
+    var pieCtx = document.getElementById('activityPieChart').getContext('2d');
+    var activityPieChart = new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Walking', 'Running', 'Cycling', 'Swimming', 'Other'],
+            datasets: [{
+                data: [30, 25, 20, 15, 10],
+                backgroundColor: [
+                    '#4e73df',
+                    '#1cc88a',
+                    '#36b9cc',
+                    '#f6c23e',
+                    '#858796'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#fff'
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Activity Distribution',
+                    color: '#fff'
+                }
+            }
+        }
+    });
+
+    // Weekly Chart
+    var weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+    var weeklyChart = new Chart(weeklyCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Water Intake',
+                data: [8, 7, 9, 8, 6, 5, 7],
+                backgroundColor: 'rgba(54, 162, 235, 0.7)'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#fff'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#fff' },
+                    grid: { color: 'rgba(255,255,255,0.1)' }
+                },
+                y: {
+                    ticks: { color: '#fff' },
+                    grid: { color: 'rgba(255,255,255,0.1)' }
+                }
+            }
+        }
+    });
+
+    // Performance Chart
+    var performanceCtx = document.getElementById('performanceChart').getContext('2d');
+    var performanceChart = new Chart(performanceCtx, {
+        type: 'radar',
+        data: {
+            labels: ['Steps', 'Sleep', 'Water', 'Exercise', 'Nutrition', 'Mental'],
+            datasets: [{
+                label: 'Current Week',
+                data: [85, 70, 90, 65, 75, 80],
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgb(54, 162, 235)',
+                pointBackgroundColor: 'rgb(54, 162, 235)'
+            }, {
+                label: 'Previous Week',
+                data: [75, 65, 80, 60, 70, 75],
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgb(255, 99, 132)',
+                pointBackgroundColor: 'rgb(255, 99, 132)'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#fff'
+                    }
+                }
+            },
+            scales: {
+                r: {
+                    angleLines: {
+                        color: 'rgba(255,255,255,0.1)'
+                    },
+                    grid: {
+                        color: 'rgba(255,255,255,0.1)'
+                    },
+                    pointLabels: {
+                        color: '#fff'
+                    },
+                    ticks: {
+                        color: '#fff',
+                        backdropColor: 'transparent'
+                    }
+                }
+            }
+        }
+    });
+</script>

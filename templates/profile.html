@@ -1,0 +1,506 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .profile-container {
+        max-width: 800px;
+        margin: 2rem auto;
+    }
+    
+    .profile-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .profile-avatar:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+    
+    .avatar-initials {
+        font-size: 3rem;
+        font-weight: 700;
+        color: white;
+        text-transform: uppercase;
+    }
+    
+    .avatar-edit {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+        background: rgba(0, 0, 0, 0.7);
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+    }
+    
+    .profile-form-container {
+        background: rgba(25, 25, 45, 0.9);
+        border-radius: 20px;
+        padding: 2.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .form-section {
+        margin-bottom: 2.5rem;
+    }
+    
+    .section-title {
+        font-size: 1.3rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+    }
+    
+    .section-title i {
+        margin-right: 10px;
+        color: #667eea;
+    }
+    
+    .form-label {
+        color: #b8b8d1;
+        font-weight: 500;
+        margin-bottom: 0.8rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .form-label i {
+        margin-right: 8px;
+        width: 20px;
+        color: #667eea;
+    }
+    
+    .form-control, .form-select, .form-check-input {
+        background: rgba(15, 15, 35, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        padding: 0.8rem 1rem;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        background: rgba(15, 15, 35, 0.9);
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        color: #ffffff;
+    }
+    
+    .form-check-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    }
+    
+    .form-check-input:checked {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+    
+    .form-text {
+        color: #8a8ab5;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+    
+    .btn-submit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 0.9rem 2.5rem;
+        font-weight: 600;
+        border-radius: 10px;
+        width: 100%;
+        margin-top: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+    
+    .password-info {
+        background: rgba(15, 15, 35, 0.6);
+        border-left: 4px solid #667eea;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+    }
+    
+    .password-info p {
+        margin-bottom: 0.5rem;
+        color: #8a8ab5;
+        font-size: 0.9rem;
+    }
+    
+    .password-info i {
+        color: #667eea;
+        margin-right: 8px;
+    }
+    
+    .alert-message {
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(25, 25, 45, 0.9);
+    }
+    
+    .alert-message.success {
+        border-left: 4px solid #43e97b;
+        background: rgba(67, 233, 123, 0.1);
+    }
+    
+    .alert-message.error {
+        border-left: 4px solid #f5576c;
+        background: rgba(245, 87, 108, 0.1);
+    }
+    
+    @media (max-width: 768px) {
+        .profile-container {
+            padding: 1rem;
+        }
+        
+        .profile-form-container {
+            padding: 1.5rem;
+        }
+        
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+        }
+        
+        .avatar-initials {
+            font-size: 2.5rem;
+        }
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="profile-container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-avatar" onclick="document.getElementById('avatarUpload').click()">
+                <div class="avatar-initials" id="avatarInitials">
+                    {{ user_name|default:"U"|first|upper }}
+                </div>
+                <div class="avatar-edit">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
+            </div>
+            <h1 class="gradient-text mb-2">Update Profile</h1>
+            <p class="text-muted">Manage your personal information and preferences</p>
+        </div>
+
+        <!-- Display Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert-message {{ message.tags }}">
+                    <div class="d-flex align-items-center">
+                        {% if message.tags == 'success' %}
+                            <i class="fas fa-check-circle me-3"></i>
+                        {% elif message.tags == 'error' %}
+                            <i class="fas fa-exclamation-circle me-3"></i>
+                        {% else %}
+                            <i class="fas fa-info-circle me-3"></i>
+                        {% endif %}
+                        <div>{{ message }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Profile Form -->
+        <form method="POST" class="profile-form-container">
+            {% csrf_token %}
+            
+            <!-- Personal Information Section -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-user"></i> Personal Information
+                </h3>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="name" class="form-label">
+                            <i class="fas fa-user-circle"></i> Full Name
+                        </label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               value="{{ user_name }}" required
+                               placeholder="Enter your full name">
+                        <div class="form-text">Your name as you'd like it to appear</div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="email" class="form-label">
+                            <i class="fas fa-envelope"></i> Email Address
+                        </label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               value="{{ user_email }}" required
+                               placeholder="your.email@example.com">
+                        <div class="form-text">We'll never share your email with anyone else</div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="phone" class="form-label">
+                            <i class="fas fa-phone"></i> Phone Number
+                        </label>
+                        <input type="tel" class="form-control" id="phone" name="phone" 
+                               value="{{ user_phone|default:'' }}"
+                               placeholder="+1 (555) 123-4567">
+                        <div class="form-text">Optional - for important notifications</div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="birthdate" class="form-label">
+                            <i class="fas fa-birthday-cake"></i> Date of Birth
+                        </label>
+                        <input type="date" class="form-control" id="birthdate" name="birthdate" 
+                               value="{{ user_birthdate|default:'' }}">
+                        <div class="form-text">Optional - helps personalize health insights</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health Information Section -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-heartbeat"></i> Health Information
+                </h3>
+                
+                <div class="mb-3">
+                    <label for="health_preferences" class="form-label">
+                        <i class="fas fa-stethoscope"></i> Health Preferences & Notes
+                    </label>
+                    <textarea class="form-control" id="health_preferences" name="health_preferences" 
+                              rows="4" placeholder="Any allergies, medications, or health conditions you'd like us to know about...">{{ user_health_preferences|default:'' }}</textarea>
+                    <div class="form-text">This information helps us provide better health recommendations</div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="height" class="form-label">
+                            <i class="fas fa-ruler-vertical"></i> Height (cm)
+                        </label>
+                        <input type="number" class="form-control" id="height" name="height" 
+                               value="{{ user_height|default:'' }}" step="0.1"
+                               placeholder="170.5">
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label for="weight" class="form-label">
+                            <i class="fas fa-weight"></i> Weight (kg)
+                        </label>
+                        <input type="number" class="form-control" id="weight" name="weight" 
+                               value="{{ user_weight|default:'' }}" step="0.1"
+                               placeholder="65.2">
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label for="blood_type" class="form-label">
+                            <i class="fas fa-tint"></i> Blood Type
+                        </label>
+                        <select class="form-select" id="blood_type" name="blood_type">
+                            <option value="">Select blood type</option>
+                            <option value="A+" {% if user_blood_type == 'A+' %}selected{% endif %}>A+</option>
+                            <option value="A-" {% if user_blood_type == 'A-' %}selected{% endif %}>A-</option>
+                            <option value="B+" {% if user_blood_type == 'B+' %}selected{% endif %}>B+</option>
+                            <option value="B-" {% if user_blood_type == 'B-' %}selected{% endif %}>B-</option>
+                            <option value="AB+" {% if user_blood_type == 'AB+' %}selected{% endif %}>AB+</option>
+                            <option value="AB-" {% if user_blood_type == 'AB-' %}selected{% endif %}>AB-</option>
+                            <option value="O+" {% if user_blood_type == 'O+' %}selected{% endif %}>O+</option>
+                            <option value="O-" {% if user_blood_type == 'O-' %}selected{% endif %}>O-</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Preferences -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-bell"></i> Notification Preferences
+                </h3>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="email_notifications" 
+                                   name="email_notifications" {% if email_notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="email_notifications">
+                                Email Notifications
+                            </label>
+                            <div class="form-text">Receive updates via email</div>
+                        </div>
+                        
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="reminder_notifications" 
+                                   name="reminder_notifications" {% if reminder_notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="reminder_notifications">
+                                Reminder Notifications
+                            </label>
+                            <div class="form-text">Get reminders for health activities</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="newsletter" 
+                                   name="newsletter" {% if newsletter %}checked{% endif %}>
+                            <label class="form-check-label" for="newsletter">
+                                Health Newsletter
+                            </label>
+                            <div class="form-text">Receive weekly health tips</div>
+                        </div>
+                        
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="goal_updates" 
+                                   name="goal_updates" {% if goal_updates %}checked{% endif %}>
+                            <label class="form-check-label" for="goal_updates">
+                                Goal Progress Updates
+                            </label>
+                            <div class="form-text">Notifications about goal progress</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-submit">
+                <i class="fas fa-save me-2"></i> Update Profile
+            </button>
+        </form>
+
+        <!-- Additional Actions -->
+        <div class="text-center mt-4">
+            <a href="{% url 'change_password' %}" class="btn btn-outline-light me-3">
+                <i class="fas fa-key me-1"></i> Change Password
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Avatar upload preview
+        const avatarUpload = document.getElementById('avatarUpload');
+        const avatarInitials = document.getElementById('avatarInitials');
+        
+        avatarUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // In a real app, you would upload this to your server
+                    // For now, we'll just show a success message
+                    alert('Avatar uploaded successfully! (In a real app, this would save to your profile)');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Auto-dismiss alerts
+        setTimeout(() => {
+            document.querySelectorAll('.alert-message').forEach(alert => {
+                alert.style.transition = 'opacity 0.5s ease';
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 5000);
+        
+        // Form validation
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            
+            if (!name) {
+                e.preventDefault();
+                alert('Please enter your name');
+                document.getElementById('name').focus();
+                return;
+            }
+            
+            if (!email) {
+                e.preventDefault();
+                alert('Please enter your email address');
+                document.getElementById('email').focus();
+                return;
+            }
+            
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                e.preventDefault();
+                alert('Please enter a valid email address');
+                document.getElementById('email').focus();
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = form.querySelector('.btn-submit');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Updating...';
+            submitBtn.disabled = true;
+            
+            // Re-enable after 5 seconds (in case of error)
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 5000);
+        });
+        
+        // Update avatar initials when name changes
+        const nameInput = document.getElementById('name');
+        nameInput.addEventListener('input', function() {
+            const initials = this.value.trim().charAt(0).toUpperCase() || 'U';
+            avatarInitials.textContent = initials;
+        });
+        
+        // Add character counter for textarea
+        const healthPrefs = document.getElementById('health_preferences');
+        const charCount = document.createElement('div');
+        charCount.className = 'form-text text-end';
+        charCount.textContent = '0/500 characters';
+        healthPrefs.parentNode.appendChild(charCount);
+        
+        healthPrefs.addEventListener('input', function() {
+            const length = this.value.length;
+            charCount.textContent = `${length}/500 characters`;
+            charCount.style.color = length > 500 ? '#f5576c' : '#8a8ab5';
+        });
+        
+        // Initialize character count
+        healthPrefs.dispatchEvent(new Event('input'));
+    });
+</script>
+{% endblock %}

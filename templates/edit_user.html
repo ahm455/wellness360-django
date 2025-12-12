@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Edit User (Admin){% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit User</h2>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" name="email" value="{{ user.email }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="is_admin" class="form-label">Admin Status</label>
+            <select name="is_admin" class="form-control">
+                <option value="1" {% if user.is_admin %}selected{% endif %}>Admin</option>
+                <option value="0" {% if not user.is_admin %}selected{% endif %}>User</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-success">Update User</button>
+    </form>
+</div>
+{% endblock %}

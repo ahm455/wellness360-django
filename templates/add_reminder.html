@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card" style="background-color: rgba(30, 30, 30, 0.85); backdrop-filter: blur(5px);">
+        <h1 class="text-center mb-4"><i class="fas fa-bell me-2" style="color: var(--secondary-color);"></i> Add Reminder</h1>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" action="{% url 'add_reminder' %}">
+            {% csrf_token %}
+            
+            <!-- Reminder Type -->
+            <div class="mb-3">
+                <label for="type" class="form-label"><i class="fas fa-list me-1" style="color: var(--secondary-color);"></i> Type</label>
+                <select class="form-control" id="type" name="type" required>
+                    <option value="">Select a type</option>
+                    <option value="Medication">Medication</option>
+                    <option value="Workout">Workout</option>
+                    <option value="Meal">Meal</option>
+                    <option value="Appointment">Appointment</option>
+                    <option value="Exercise">Exercise</option>
+                    <option value="Checkup">Checkup</option>
+                    <option value="Water">Water Intake</option>
+                    <option value="Sleep">Sleep</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-3">
+                <label for="description" class="form-label"><i class="fas fa-align-left me-1" style="color: var(--secondary-color);"></i> Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3" placeholder="Enter reminder details (e.g., Take medication, Go for a run, etc.)"></textarea>
+                <div class="form-text text-muted">Optional: Add details about your reminder</div>
+            </div>
+
+            <!-- Expiry Date -->
+            <div class="mb-3">
+                <label for="expiry" class="form-label"><i class="fas fa-calendar-times me-1" style="color: var(--secondary-color);"></i> Expiry Date</label>
+                <input type="date" class="form-control" id="expiry" name="expiry" required>
+                <div class="form-text text-muted">When should this reminder stop appearing?</div>
+            </div>
+
+            <!-- Date -->
+            <div class="mb-3">
+                <label for="date" class="form-label"><i class="fas fa-calendar-day me-1" style="color: var(--secondary-color);"></i> Reminder Date</label>
+                <input type="date" class="form-control" id="date" name="date" required>
+                <div class="form-text text-muted">When should the reminder occur?</div>
+            </div>
+
+            <!-- Time -->
+            <div class="mb-3">
+                <label for="time" class="form-label"><i class="fas fa-clock me-1" style="color: var(--secondary-color);"></i> Time</label>
+                <input type="time" class="form-control" id="time" name="time" required>
+                <div class="form-text text-muted">What time should the reminder occur?</div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg py-3">
+                    <i class="fas fa-save me-2"></i> Add Reminder
+                </button>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-light py-3">
+                    <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Script to auto-fill date and time -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const now = new Date();
+        
+        // Set default date to today
+        const today = now.toISOString().split('T')[0];
+        document.getElementById('date').value = today;
+        
+        // Set default time to next hour
+        const nextHour = new Date(now.getTime() + 60 * 60 * 1000);
+        const nextHourTime = nextHour.toTimeString().substring(0, 5);
+        document.getElementById('time').value = nextHourTime;
+        
+        // Set expiry to 7 days from now
+        const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        const nextWeekDate = nextWeek.toISOString().split('T')[0];
+        document.getElementById('expiry').value = nextWeekDate;
+        
+        // Add form validation
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            const date = new Date(document.getElementById('date').value);
+            const expiry = new Date(document.getElementById('expiry').value);
+            
+            if (expiry < date) {
+                e.preventDefault();
+                alert('Expiry date must be on or after the reminder date.');
+                document.getElementById('expiry').focus();
+                return false;
+            }
+            
+            return true;
+        });
+    });
+</script>
+
+<!-- Enhanced Styling -->
+<style>
+    .container {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .card {
+        background-color: rgba(30, 30, 30, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        padding: 2.5rem;
+        backdrop-filter: blur(10px);
+        margin-top: 2rem;
+    }
+
+    h1 {
+        color: var(--text-primary);
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        color: var(--text-primary);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .form-control, .form-select {
+        background-color: rgba(42, 42, 42, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: var(--text-primary);
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+        background-color: rgba(42, 42, 42, 0.9);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(108, 92, 231, 0.25);
+        color: var(--text-primary);
+    }
+
+    .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+    .form-text {
+        color: rgba(255, 255, 255, 0.5) !important;
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border: none;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        padding: 0.75rem;
+        font-size: 1.1rem;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #5a4bd1, #8a7dfe);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+    }
+
+    .btn-outline-light {
+        border-color: rgba(255, 255, 255, 0.2);
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+        padding: 0.75rem;
+        font-size: 1.1rem;
+    }
+
+    .btn-outline-light:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.3);
+        color: var(--text-primary);
+        transform: translateY(-2px);
+    }
+
+    .alert {
+        background-color: rgba(25, 25, 25, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-primary);
+        backdrop-filter: blur(5px);
+    }
+
+    .alert-success {
+        border-left: 4px solid var(--accent-color);
+    }
+
+    .alert-danger {
+        border-left: 4px solid #dc3545;
+    }
+
+    /* Make sure the form is responsive */
+    @media (max-width: 768px) {
+        .card {
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        h1 {
+            font-size: 1.75rem;
+        }
+    }
+</style>
+{% endblock %}

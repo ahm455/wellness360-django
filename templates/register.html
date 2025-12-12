@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Wellness360</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <style>
+        /* Full-page, calming background */
+        body {
+            color: #ddd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            /* New background image - a calm, wellness-focused scene */
+            background-image: url('https://images.unsplash.com/photo-1497366754035-f200968a6e72?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+        /* Dark overlay for better text readability */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(18, 18, 18, 0.80); /* Slightly lighter overlay for a softer look */
+            z-index: 0;
+        }
+
+        /* Registration card styling - following a clean, patient-friendly design principle[citation:4][citation:5] */
+        .card {
+            background-color: rgba(30, 30, 30, 0.92);
+            color: #ccc;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 450px;
+            z-index: 1;
+            position: relative;
+            border: 1px solid rgba(0, 206, 201, 0.2); /* Subtle accent border */
+        }
+
+        .form-label {
+            font-weight: bold;
+            color: #bbb;
+        }
+        /* Improved form fields for better UX[citation:4] */
+        .form-control {
+            background-color: rgba(42, 42, 42, 0.9);
+            color: #fff;
+            border: 1px solid #555;
+            transition: all 0.3s ease;
+            padding: 0.75rem;
+        }
+        .form-control:focus {
+            background-color: rgba(42, 42, 42, 1);
+            border-color: #00cec9; /* Using your accent color for focus */
+            box-shadow: 0 0 0 0.25rem rgba(0, 206, 201, 0.25);
+        }
+        .form-control::placeholder {
+            color: #aaa;
+        }
+        /* Primary action button - clear and action-oriented[citation:4] */
+        .btn-primary {
+            background: linear-gradient(to right, #007bff, #0056b3);
+            border: none;
+            width: 100%;
+            padding: 0.75rem;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(to right, #0069d9, #004a9c);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+        }
+        /* Link styling for better visibility */
+        a {
+            color: #4da8ff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        a:hover {
+            color: #80c1ff;
+            text-decoration: underline;
+        }
+        /* Dropdown styles - adjusted for new layout */
+        .dropdown {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            z-index: 10;
+        }
+        .dropbtn {
+            background-color: rgba(0, 123, 255, 0.9);
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: rgba(42, 42, 42, 0.95);
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4);
+            z-index: 1;
+            padding: 10px;
+            border-radius: 5px;
+            backdrop-filter: blur(5px);
+        }
+        .dropdown-content label {
+            display: block;
+            color: #ccc;
+            margin: 5px 0;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dropdown">
+      <button class="dropbtn">Select Options ▼</button>
+      <div class="dropdown-content">
+        <label><input type="checkbox" value="Option 1"> Option 1</label>
+        <label><input type="checkbox" value="Option 2"> Option 2</label>
+        <label><input type="checkbox" value="Option 3"> Option 3</label>
+      </div>
+    </div>
+
+    <div class="container">
+        <div class="card mx-auto">
+            <h1 class="text-center mb-4"><i class="fas fa-user-plus me-2"></i>Create Your Account</h1>
+
+            <!-- Django Messages for Success/Error -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} text-center alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Error alert for JavaScript validation -->
+            <div id="errorAlert" class="alert alert-danger d-none text-center" role="alert">
+                <span id="errorMessage"></span>
+            </div>
+
+            <form method="POST" action="{% url 'register' %}" class="mt-3" id="registerForm">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="name" class="form-label"><i class="fas fa-user me-2"></i> Full Name</label>
+                    <input type="text" class="form-control" id="name" name="name" placeholder="Enter your full name" required>
+                    <div id="nameError" class="error-message text-danger d-none mt-1 small"></div>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label"><i class="fas fa-envelope me-2"></i> Email Address</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
+                    <div id="emailError" class="error-message text-danger d-none mt-1 small"></div>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label"><i class="fas fa-lock me-2"></i> Password</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Create a secure password" required>
+                    <div id="passwordError" class="error-message text-danger d-none mt-1 small"></div>
+                    <small class="text-muted d-block mt-1">Must be 8+ characters with uppercase, lowercase, number, and special character.</small>
+                </div>
+                <div class="mb-4">
+                    <label for="confirm_password" class="form-label"><i class="fas fa-check-circle me-2"></i> Confirm Password</label>
+                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Re-enter your password" required>
+                    <div id="confirmPasswordError" class="error-message text-danger d-none mt-1 small"></div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                    <i class="fas fa-user-plus me-2"></i> Register Now
+                </button>
+            </form>
+
+            <p class="mt-4 mb-0 text-center">
+                Already have an account?
+                <a href="{% url 'login' %}" class="ms-1">
+                    <i class="fas fa-sign-in-alt me-1"></i> Login here
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Registration Form JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const registerForm = document.getElementById('registerForm');
+
+            registerForm.addEventListener('submit', function (e) {
+                if (!validateForm()) {
+                    e.preventDefault();
+                    return false;
+                }
+                // If validation passes, allow normal Django form submission
+            });
+
+            function validateForm() {
+                let isValid = true;
+                const nameVal = document.getElementById('name').value.trim();
+                const emailVal = document.getElementById('email').value.trim();
+                const passVal = document.getElementById('password').value;
+                const confirmVal = document.getElementById('confirm_password').value;
+
+                // Reset errors
+                document.querySelectorAll('.error-message').forEach(el => {
+                    el.textContent = '';
+                    el.classList.add('d-none');
+                });
+                document.getElementById('errorAlert').classList.add('d-none');
+
+                // Name validation
+                if (!nameVal) {
+                    document.getElementById('nameError').textContent = 'Full name is required';
+                    document.getElementById('nameError').classList.remove('d-none');
+                    isValid = false;
+                }
+
+                // Email validation
+                if (!emailVal) {
+                    document.getElementById('emailError').textContent = 'Email address is required';
+                    document.getElementById('emailError').classList.remove('d-none');
+                    isValid = false;
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+                    document.getElementById('emailError').textContent = 'Please enter a valid email address';
+                    document.getElementById('emailError').classList.remove('d-none');
+                    isValid = false;
+                }
+
+                // Enhanced Password validation (matching your backend rules)
+                if (!passVal) {
+                    document.getElementById('passwordError').textContent = 'Password is required';
+                    document.getElementById('passwordError').classList.remove('d-none');
+                    isValid = false;
+                } else if (passVal.length < 8) {
+                    document.getElementById('passwordError').textContent = 'Password must be at least 8 characters';
+                    document.getElementById('passwordError').classList.remove('d-none');
+                    isValid = false;
+                } else {
+                    // Check for uppercase, lowercase, number, and special character
+                    const hasUpper = /[A-Z]/.test(passVal);
+                    const hasLower = /[a-z]/.test(passVal);
+                    const hasNumber = /[0-9]/.test(passVal);
+                    const hasSpecial = /[!@#$%^&*()]/.test(passVal);
+
+                    if (!hasUpper || !hasLower || !hasNumber || !hasSpecial) {
+                        document.getElementById('passwordError').textContent = 'Password must include uppercase, lowercase, number, and special character';
+                        document.getElementById('passwordError').classList.remove('d-none');
+                        isValid = false;
+                    }
+                }
+
+                // Confirm Password validation
+                if (passVal !== confirmVal) {
+                    document.getElementById('confirmPasswordError').textContent = 'Passwords do not match';
+                    document.getElementById('confirmPasswordError').classList.remove('d-none');
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    document.getElementById('errorMessage').textContent = 'Please fix the errors above to continue';
+                    document.getElementById('errorAlert').classList.remove('d-none');
+                }
+
+                return isValid;
+            }
+        });
+    </script>
+</body>
+</html>

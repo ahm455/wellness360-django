@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Search Results{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Search Results for "{{ query }}"</h2>
+
+    {% if results %}
+        <ul class="list-group mt-3">
+            {% for result in results %}
+                <li class="list-group-item">
+                    <strong>{{ result.title or result.type }}</strong><br>
+                    <span>{{ result.description or result.date or result.details }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="mt-3">No results found for "{{ query }}".</p>
+    {% endif %}
+</div>
+{% endblock %}

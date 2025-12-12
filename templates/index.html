@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="welcome-message text-center">Welcome to Wellness360</h1>
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Track Your Health</h5>
+                    <p class="card-text">Log your daily health data including weight, blood pressure, and more.</p>
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary">Go to Dashboard</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">View Medical Records</h5>
+                    <p class="card-text">Upload and view your medical records securely.</p>
+                    <a href="{% url 'upload_record' %}" class="btn btn-primary">Upload Medical Record</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Manage Profile</h5>
+                    <p class="card-text">Update your profile, health preferences, and more.</p>
+                    <a href="{% url 'profile' %}" class="btn btn-primary">Edit Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Already have an account?</h5>
+                    <p class="card-text">Login to access your dashboard and health data.</p>
+                    <a href="{% url 'login' %}" class="btn btn-success">Login</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">New to Wellness360?</h5>
+                    <p class="card-text">Create an account to start tracking your health journey.</p>
+                    <a href="{% url 'register' %}" class="btn btn-primary">Register</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="alert alert-info text-center" role="alert">
+                <i class="fas fa-info-circle"></i> Remember to keep track of your health data regularly for better insights!
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

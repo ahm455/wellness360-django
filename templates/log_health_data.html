@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <div class="card bg-dark-2 p-4 shadow-sm">
+        <h2 class="mb-4 text-light"><i class="fas fa-notes-medical me-2"></i> Log Health Data</h2>
+
+        <form method="POST" action="{% url 'log_health_data' type=type %}">
+            {% csrf_token %}
+            
+            <!-- Date -->
+            <div class="mb-3">
+                <label for="date" class="form-label text-light">Date</label>
+                <input type="date" class="form-control bg-dark-3 text-light" id="date" name="date" required>
+            </div>
+
+            <!-- Type -->
+            <div class="mb-3">
+                <label for="type" class="form-label text-light">Type</label>
+                <select class="form-control bg-dark-3 text-light" id="type" name="type" onchange="updateCategories()" required>
+                    <option value="Meal">Meal</option>
+                    <option value="Workout">Workout</option>
+                    <option value="Medical">Medical</option>
+                </select>
+            </div>
+
+            <!-- Schedule -->
+            <div class="mb-3">
+                <label for="schedule" class="form-label text-light">Schedule</label>
+                <select class="form-control bg-dark-3 text-light" id="schedule" name="schedule" required>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                </select>
+            </div>
+
+            <!-- Category -->
+            <div class="mb-3">
+                <label for="category" class="form-label text-light">Category</label>
+                <select class="form-control bg-dark-3 text-light" id="category" name="category" onchange="showSuggestions()" required></select>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-3 position-relative">
+                <label for="description" class="form-label text-light">Description</label>
+                <input type="text" class="form-control bg-dark-3 text-light" id="description" name="description" required onfocus="showSuggestions()">
+                <div id="suggestions" class="suggestions bg-dark-3 border-light"></div>
+            </div>
+
+            <!-- Calories -->
+            <div class="mb-3" id="caloriesField" style="display: none;">
+                <label for="calories" class="form-label text-light">Calories</label>
+                <input type="number" class="form-control bg-dark-3 text-light" id="calories" name="calories">
+            </div>
+
+            <!-- Duration -->
+            <div class="mb-3" id="durationField" style="display: none;">
+                <label for="duration" class="form-label text-light">Duration (minutes)</label>
+                <input type="number" class="form-control bg-dark-3 text-light" id="duration" name="duration">
+            </div>
+
+            <!-- Notes -->
+            <div class="mb-3">
+                <label for="notes" class="form-label text-light">Notes (Optional)</label>
+                <textarea class="form-control bg-dark-3 text-light" id="notes" name="notes" rows="3"></textarea>
+            </div>
+
+            <!-- Buttons -->
+            <button type="submit" class="btn btn-primary w-100 mb-2"><i class="fas fa-save me-2"></i> Log Data</button>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-light w-100"><i class="fas fa-arrow-left me-2"></i> Back to Dashboard</a>
+        </form>
+    </div>
+</div>
+
+<script>
+const suggestionMap = {
+    Meal: {
+        Breakfast: ['Omelet', 'Toast', 'Smoothie', 'Paratha'],
+        Lunch: ['Rice', 'Chicken', 'Salad', 'Daal'],
+        Dinner: ['Soup', 'Curry', 'Chapati'],
+        Snack: ['Fruit', 'Yogurt', 'Sandwich']
+    },
+    Workout: {
+        Cardio: ['Running', 'Cycling', 'Jump Rope'],
+        Strength: ['Weightlifting', 'Push-ups', 'Squats'],
+        Flexibility: ['Yoga', 'Stretching']
+    },
+    Medical: {
+        Checkup: ['Blood Pressure', 'Routine Test'],
+        Medication: ['Painkiller', 'Antibiotic'],
+        Symptoms: ['Fever', 'Cough']
+    }
+};
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+    updateCategories();
+});
+
+function updateCategories() {
+    const type = document.getElementById('type').value;
+    const catSelect = document.getElementById('category');
+    catSelect.innerHTML = '';
+
+    if (suggestionMap[type]) {
+        Object.keys(suggestionMap[type]).forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            catSelect.appendChild(option);
+        });
+    }
+
+    // Toggle calorie/duration
+    document.getElementById('caloriesField').style.display = type === 'Meal' ? 'block' : 'none';
+    document.getElementById('durationField').style.display = type === 'Workout' ? 'block' : 'none';
+
+    showSuggestions();
+}
+
+function showSuggestions() {
+    const type = document.getElementById('type').value;
+    const category = document.getElementById('category').value;
+    const suggestions = suggestionMap[type]?.[category] || [];
+    const box = document.getElementById('suggestions');
+    box.innerHTML = '';
+
+    suggestions.forEach(text => {
+        const div = document.createElement('div');
+        div.textContent = text;
+        div.onclick = () => {
+            document.getElementById('description').value = text;
+            box.style.display = 'none';
+        };
+        box.appendChild(div);
+    });
+
+    box.style.display = suggestions.length ? 'block' : 'none';
+}
+
+document.addEventListener('click', e => {
+    if (!e.target.closest('#description') && !e.target.closest('#suggestions')) {
+        document.getElementById('suggestions').style.display = 'none';
+    }
+});
+</script>
+
+<style>
+:root {
+    --dark-1: #121212;
+    --dark-2: #1e1e1e;
+    --dark-3: #2a2a2a;
+    --text-light: #f8f9fa;
+    --text-muted: #adb5bd;
+    --border-light: #495057;
+}
+
+.bg-dark-2 {
+    background-color: var(--dark-2);
+    border: 1px solid var(--border-light);
+}
+.bg-dark-3 {
+    background-color: var(--dark-3);
+    border: 1px solid var(--border-light);
+    color: var(--text-light);
+}
+.form-control::placeholder {
+    color: var(--text-muted);
+}
+.form-control:focus {
+    background-color: var(--dark-3);
+    border-color: #6c5ce7;
+    box-shadow: 0 0 0 0.2rem rgba(108, 92, 231, 0.3);
+    color: var(--text-light);
+}
+
+.suggestions {
+    position: absolute;
+    width: 100%;
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+    border: 1px solid var(--border-light);
+    border-radius: 0 0 8px 8px;
+}
+
+.suggestions div {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: 0.2s ease;
+    border-bottom: 1px solid var(--border-light);
+}
+.suggestions div:hover {
+    background-color: #6c5ce7;
+    color: white;
+}
+.btn-primary {
+    background-color: #6c5ce7;
+    border: none;
+}
+.btn-primary:hover {
+    background-color: #5a4bd1;
+}
+.btn-outline-light {
+    color: var(--text-light);
+    border-color: var(--border-light);
+}
+.btn-outline-light:hover {
+    background-color: var(--dark-3);
+}
+</style>
+{% endblock %}

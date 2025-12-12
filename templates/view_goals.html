@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4 text-light"><i class="fas fa-bullseye me-2"></i> All Goals</h2>
+
+    {% if goals %}
+    <div class="table-responsive">
+        <table class="table table-dark table-hover">
+            <thead>
+                <tr>
+                    <th>Goal Type</th>
+                    <th>Current</th>
+                    <th>Target</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Progress</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for goal in goals %}
+                <tr>
+                    <td>{{ goal.goal_type }}</td>
+                    <td>{{ goal.current_value }}</td>
+                    <td>{{ goal.target_value }}</td>
+                    <td>{{ goal.start_date }}</td>
+                    <td>{{ goal.end_date }}</td>
+                    <td>{{ goal.progress }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted">No goals found.</p>
+    {% endif %}
+</div>
+{% endblock %}

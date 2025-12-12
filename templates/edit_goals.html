@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Goal{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-edit me-2"></i>Edit Goal</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('update_goal', goal_id=goal.goal_id) }}">
+                <div class="mb-3">
+                    <label for="goal_name" class="form-label">Goal Name</label>
+                    <input type="text" class="form-control" id="goal_name" name="goal_name" value="{{ goal.goal_name }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="goal_type" class="form-label">Goal Type</label>
+                    <input type="text" class="form-control" id="goal_type" name="goal_type" value="{{ goal.goal_type }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="target_value" class="form-label">Target Value</label>
+                    <input type="number" step="any" class="form-control" id="target_value" name="target_value" value="{{ goal.target_value }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="current_value" class="form-label">Current Value</label>
+                    <input type="number" step="any" class="form-control" id="current_value" name="current_value" value="{{ goal.current_value }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" value="{{ goal.start_date }}">
+                </div>
+                <div class="mb-3">
+                    <label for="end_date" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date" value="{{ goal.end_date }}">
+                </div>
+                <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Save Changes</button>
+                <a href="{{ url_for('view_goals') }}" class="btn btn-secondary ms-2">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

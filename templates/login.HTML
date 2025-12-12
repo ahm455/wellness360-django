@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta and Title -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Wellness360</title>
+
+    <!-- Bootstrap & FontAwesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- Custom Dark Theme Styles -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+
+    <style>
+        /* Full screen dark background with centered content */
+        body {
+            color: #ddd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            /* Background image properties */
+            background-image: url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+
+        /* Dark overlay for better text readability */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(18, 18, 18, 0.85);
+            z-index: 0;
+        }
+
+        /* Login card styling */
+        .card {
+            background-color: rgba(30, 30, 30, 0.9);
+            color: #ccc;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 400px;
+            z-index: 1;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Header styling */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #007bff; /* Wellness360 primary blue */
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Form label customization */
+        .form-label {
+            font-weight: bold;
+            color: #bbb;
+        }
+
+        /* Dark-themed form input fields */
+        .form-control {
+            background-color: rgba(42, 42, 42, 0.8);
+            color: #fff;
+            border: 1px solid #444;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            background-color: rgba(42, 42, 42, 0.9);
+            color: #fff;
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+        }
+
+        .form-control::placeholder {
+            color: #888;
+        }
+
+        /* Primary login button */
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Link styling */
+        a {
+            color: #4da8ff;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: #80c1ff;
+            text-decoration: underline;
+        }
+
+        /* Flash message margin */
+        .alert {
+            margin-top: 20px;
+            background-color: rgba(25, 25, 25, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Card -->
+    <div class="card">
+
+        <!-- App Title -->
+        <div class="header">
+            <h1>Wellness360</h1>
+        </div>
+
+        <!-- Django Messages for Success/Error -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} text-center">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Login Form -->
+        <form method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+            <!-- Email or Username Field -->
+            <div class="mb-3">
+                <label for="email" class="form-label"><i class="fas fa-envelope"></i> Email or Username</label>
+                <input type="text" class="form-control" id="email" name="email" placeholder="Enter your email or username" required>
+            </div>
+
+            <!-- Password Field -->
+            <div class="mb-3">
+                <label for="password" class="form-label"><i class="fas fa-lock"></i> Password</label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+        </form>
+
+        <!-- Register Redirect -->
+        <p class="mt-3 text-center">
+            Don't have an account?
+            <a href="{% url 'register' %}">
+                <i class="fas fa-user-plus"></i> Register here
+            </a>
+        </p>
+
+        <!-- Forgot Password Link -->
+        <p class="mt-2 text-center">
+            <a href="{% url 'forgot_password' %}">
+                <i class="fas fa-key"></i> Forgot Password?
+            </a>
+        </p>
+    </div>
+
+    <!-- Bootstrap JS for responsiveness -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

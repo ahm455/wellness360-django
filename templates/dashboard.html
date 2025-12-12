@@ -1,0 +1,1352 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* Advanced Dashboard Styles */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .summary-value {
+        font-size: 2.8rem;
+        font-weight: 800;
+        margin: 5px 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-card {
+        transition: all 0.3s ease;
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+        z-index: 1;
+        min-height: 180px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        z-index: -1;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .stat-card:hover::before {
+        opacity: 1;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    .card {
+        border-radius: 15px;
+        border: none;
+        background: linear-gradient(145deg, #1e1e1e, #252525);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 1.2rem 1.5rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    
+    .progress {
+        height: 12px;
+        border-radius: 10px;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .progress-bar {
+        border-radius: 10px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .metric-change {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .metric-change.positive {
+        background: rgba(40, 167, 69, 0.2);
+        color: #28a745;
+    }
+    
+    .metric-change.negative {
+        background: rgba(220, 53, 69, 0.2);
+        color: #dc3545;
+    }
+    
+    .metric-change.neutral {
+        background: rgba(108, 117, 125, 0.2);
+        color: #6c757d;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 280px;
+        width: 100%;
+        padding: 10px;
+    }
+    
+    .quick-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        text-decoration: none;
+        margin: 5px;
+        min-width: 150px;
+    }
+    
+    .quick-action-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        color: white;
+    }
+    
+    .quick-action-btn i {
+        margin-right: 8px;
+        font-size: 1.1em;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 12px;
+        border: 2px dashed rgba(255, 255, 255, 0.1);
+    }
+    
+    .empty-state i {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+        color: rgba(255, 255, 255, 0.3);
+    }
+    
+    .trend-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+    }
+    
+    .trend-indicator.up {
+        background-color: #28a745;
+    }
+    
+    .trend-indicator.down {
+        background-color: #dc3545;
+    }
+    
+    .trend-indicator.stable {
+        background-color: #ffc107;
+    }
+    
+    .dashboard-widget {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .dashboard-widget::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 0 0 0 100%;
+        z-index: 0;
+    }
+    
+    /* Health Trends Chart Tabs */
+    .chart-tabs {
+        margin-bottom: 20px;
+    }
+    
+    .chart-tabs .nav-tabs {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .chart-tabs .nav-link {
+        color: #ccc;
+        border: none;
+        padding: 12px 20px;
+        margin-right: 5px;
+        border-radius: 8px 8px 0 0;
+        font-weight: 500;
+    }
+    
+    .chart-tabs .nav-link:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .chart-tabs .nav-link.active {
+        color: #fff;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+    }
+    
+    .trend-chart-container {
+        height: 300px;
+        position: relative;
+    }
+    
+    /* Chart Colors */
+    .weight-color { color: #667eea; }
+    .calories-color { color: #ffb74d; }
+    .steps-color { color: #03dac6; }
+    
+    /* Custom scrollbar */
+    .table-responsive::-webkit-scrollbar {
+        height: 6px;
+        width: 6px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .summary-value {
+            font-size: 2.2rem;
+        }
+        
+        .quick-action-btn {
+            min-width: 120px;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+        }
+        
+        .chart-tabs .nav-link {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center mb-3">
+                <div class="me-3">
+                    <i class="fas fa-heartbeat fa-3x" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                </div>
+                <div>
+                    <h1 class="mb-1">Welcome back, {{ user.username|default:"User" }}!</h1>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-calendar-day me-1"></i> {{ current_date|date:"F d, Y" }}
+                        <span class="mx-2">•</span>
+                        <i class="fas fa-chart-line me-1"></i> Your health overview
+                    </p>
+                </div>
+            </div>
+            
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %} me-2"></i>
+                        <div>{{ message }}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="col-lg-4 text-lg-end">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-light" id="today-btn">
+                    <i class="fas fa-calendar-day"></i> Today
+                </button>
+                <button type="button" class="btn btn-outline-light active" id="week-btn">
+                    <i class="fas fa-calendar-week"></i> Week
+                </button>
+                <button type="button" class="btn btn-outline-light" id="month-btn">
+                    <i class="fas fa-calendar-alt"></i> Month
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap justify-content-center">
+                        <a href="{% url 'log_health' %}" class="quick-action-btn">
+                            <i class="fas fa-plus"></i> Log Health
+                        </a>
+                        <a href="{% url 'add_reminder' %}" class="quick-action-btn">
+                            <i class="fas fa-bell"></i> Add Reminder
+                        </a>
+                        <a href="{% url 'goals' %}" class="quick-action-btn">
+                            <i class="fas fa-bullseye"></i> Set Goal
+                        </a>
+                        <a href="{% url 'upload_record' %}" class="quick-action-btn">
+                            <i class="fas fa-file-upload"></i> Upload Record
+                        </a>
+                        {% if request.session.role == 'Admin' or request.session.role == 'admin' %}
+                        <a href="{% url 'admin_panel' %}" class="quick-action-btn bg-danger">
+                            <i class="fas fa-tools"></i> Admin Panel
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Health Trends Dashboard -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Health Trends Dashboard</h5>
+                    <div class="time-period-buttons">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-light trend-period" data-period="week">
+                                Week
+                            </button>
+                            <button type="button" class="btn btn-outline-light trend-period active" data-period="month">
+                                Month
+                            </button>
+                            <button type="button" class="btn btn-outline-light trend-period" data-period="year">
+                                Year
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Stats Bar -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <h2 class="weight-color" id="current-weight">75.2 kg</h2>
+                                <p class="text-muted mb-1">Current Weight</p>
+                                <span class="metric-change positive">
+                                    <i class="fas fa-arrow-down me-1"></i> 1.3 kg down
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <h2 class="calories-color" id="avg-calories">2,150</h2>
+                                <p class="text-muted mb-1">Avg Daily Calories</p>
+                                <span class="metric-change negative">
+                                    <i class="fas fa-arrow-up me-1"></i> 150 above target
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <h2 class="steps-color" id="avg-steps">8,450</h2>
+                                <p class="text-muted mb-1">Avg Daily Steps</p>
+                                <span class="metric-change positive">
+                                    <i class="fas fa-arrow-up me-1"></i> 450 more
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chart Tabs -->
+                    <div class="chart-tabs">
+                        <ul class="nav nav-tabs" id="trendTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="weight-tab" data-bs-toggle="tab" data-bs-target="#weight-chart" type="button">
+                                    <i class="fas fa-weight me-1 weight-color"></i> Weight Trend
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="calories-tab" data-bs-toggle="tab" data-bs-target="#calories-chart" type="button">
+                                    <i class="fas fa-fire me-1 calories-color"></i> Calories Trend
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="steps-tab" data-bs-toggle="tab" data-bs-target="#steps-chart" type="button">
+                                    <i class="fas fa-walking me-1 steps-color"></i> Steps Trend
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-chart" type="button">
+                                    <i class="fas fa-chart-bar me-1"></i> All Metrics
+                                </button>
+                            </li>
+                        </ul>
+                        
+                        <div class="tab-content mt-3" id="trendTabContent">
+                            <!-- Weight Chart -->
+                            <div class="tab-pane fade show active" id="weight-chart" role="tabpanel">
+                                <div class="trend-chart-container">
+                                    <canvas id="weightTrendChart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <!-- Calories Chart -->
+                            <div class="tab-pane fade" id="calories-chart" role="tabpanel">
+                                <div class="trend-chart-container">
+                                    <canvas id="caloriesTrendChart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <!-- Steps Chart -->
+                            <div class="tab-pane fade" id="steps-chart" role="tabpanel">
+                                <div class="trend-chart-container">
+                                    <canvas id="stepsTrendChart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <!-- All Metrics Chart -->
+                            <div class="tab-pane fade" id="all-chart" role="tabpanel">
+                                <div class="trend-chart-container">
+                                    <canvas id="allMetricsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Calories Card -->
+        <div class="dashboard-widget">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="card-subtitle text-muted mb-1">CALORIES</h6>
+                            <h2 class="summary-value">
+                                {% with total_calories=0 %}
+                                    {% for entry in health_data %}
+                                        {% if entry.type == 'Meal' %}
+                                            {% with total_calories=total_calories|add:entry.calories %}
+                                            {% endwith %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if total_calories == 0 %}
+                                        0
+                                    {% else %}
+                                        {{ total_calories }}
+                                    {% endif %}
+                                {% endwith %}
+                            </h2>
+                            <span class="metric-change positive">
+                                <i class="fas fa-arrow-up me-1"></i>12% from last week
+                            </span>
+                        </div>
+                        <div class="icon-circle bg-warning">
+                            <i class="fas fa-fire fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">Daily target: 2,000 kcal</small>
+                        <div class="progress mt-1">
+                            <div class="progress-bar" style="width: 75%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exercise Card -->
+        <div class="dashboard-widget">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="card-subtitle text-muted mb-1">EXERCISE</h6>
+                            <h2 class="summary-value">
+                                {% with total_duration=0 %}
+                                    {% for entry in health_data %}
+                                        {% if entry.type == 'Workout' %}
+                                            {% with total_duration=total_duration|add:entry.duration %}
+                                            {% endwith %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if total_duration == 0 %}
+                                        0
+                                    {% else %}
+                                        {{ total_duration }}
+                                    {% endif %}
+                                {% endwith %}<small class="fs-6"> mins</small>
+                            </h2>
+                            <span class="metric-change negative">
+                                <i class="fas fa-arrow-down me-1"></i>8% from last week
+                            </span>
+                        </div>
+                        <div class="icon-circle bg-info">
+                            <i class="fas fa-running fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">Daily target: 60 mins</small>
+                        <div class="progress mt-1">
+                            <div class="progress-bar" style="width: 45%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reminders Card -->
+        <div class="dashboard-widget">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="card-subtitle text-muted mb-1">ACTIVE REMINDERS</h6>
+                            <h2 class="summary-value">{{ reminders|length }}</h2>
+                            <span class="metric-change neutral">
+                                <i class="fas fa-minus me-1"></i>No change
+                            </span>
+                        </div>
+                        <div class="icon-circle bg-primary">
+                            <i class="fas fa-bell fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        {% if reminders %}
+                            <small class="text-muted">Next: {{ reminders.0.description|truncatechars:30 }}</small>
+                            <div class="progress mt-1">
+                                <div class="progress-bar" style="width: 60%"></div>
+                            </div>
+                        {% else %}
+                            <small class="text-muted">No active reminders</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Goals Card -->
+        <div class="dashboard-widget">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="card-subtitle text-muted mb-1">ACTIVE GOALS</h6>
+                            <h2 class="summary-value">{{ goals|length }}</h2>
+                            <span class="metric-change positive">
+                                <i class="fas fa-arrow-up me-1"></i>2 new this month
+                            </span>
+                        </div>
+                        <div class="icon-circle bg-success">
+                            <i class="fas fa-bullseye fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        {% if goals %}
+                            <small class="text-muted">Avg. completion: 65%</small>
+                            <div class="progress mt-1">
+                                <div class="progress-bar" style="width: 65%"></div>
+                            </div>
+                        {% else %}
+                            <small class="text-muted">No active goals</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Health Trends Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="healthOverviewChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Activity Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="activityPieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Data & Goals Progress -->
+    <div class="row mb-4">
+        <div class="col-lg-7">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Health Data</h5>
+                    <a href="{% url 'log_health' %}" class="btn btn-sm btn-outline-light">
+                        <i class="fas fa-plus me-1"></i> Add New
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if health_data %}
+                    <div class="table-responsive" style="max-height: 400px;">
+                        <table class="table table-dark table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th class="text-end">Calories</th>
+                                    <th class="text-end">Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in health_data|slice:":8" %}
+                                <tr>
+                                    <td>{{ entry.date|date:"M d" }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if entry.type == 'Meal' %}warning{% elif entry.type == 'Workout' %}info{% else %}secondary{% endif %}">
+                                            {{ entry.type|default:"-" }}
+                                        </span>
+                                    </td>
+                                    <td class="text-truncate" style="max-width: 150px;" title="{{ entry.description|default:'' }}">
+                                        {{ entry.description|default:"-" }}
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="badge bg-dark">{{ entry.calories|default:0 }}</span>
+                                    </td>
+                                    <td class="text-end">
+                                        {% if entry.duration %}
+                                        <span class="badge bg-info">{{ entry.duration }} mins</span>
+                                        {% else %}-{% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-heartbeat"></i>
+                        <h5 class="mt-3">No health data yet</h5>
+                        <p class="text-muted">Start tracking your health journey</p>
+                        <a href="{% url 'log_health' %}" class="btn btn-success mt-2">
+                            <i class="fas fa-plus me-1"></i> Add First Entry
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-5">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-bullseye me-2"></i>Goal Progress</h5>
+                    <a href="{% url 'goals' %}" class="btn btn-sm btn-outline-light">
+                        <i class="fas fa-eye me-1"></i> View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if goals %}
+                    {% for goal in goals|slice:":3" %}
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>{{ goal.goal_type|default:"Goal" }}</span>
+                            <span class="fw-bold">{{ goal.progress|default:0 }}%</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-{% if goal.progress >= 80 %}success{% elif goal.progress >= 50 %}info{% else %}warning{% endif %}" 
+                                 style="width: {{ goal.progress|default:0 }}%"></div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-muted">Current: {{ goal.current_value|default:0 }}</small>
+                            <small class="text-muted">Target: {{ goal.target_value|default:1 }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% if goals|length > 3 %}
+                    <div class="text-center mt-3">
+                        <a href="{% url 'goals' %}" class="btn btn-outline-light btn-sm">
+                            View all {{ goals|length }} goals
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-bullseye"></i>
+                        <h5 class="mt-3">No active goals</h5>
+                        <p class="text-muted">Set goals to track your progress</p>
+                        <a href="{% url 'goals' %}" class="btn btn-primary mt-2">
+                            <i class="fas fa-plus me-1"></i> Set New Goal
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Reminders & Quick Stats -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-bell me-2"></i>Upcoming Reminders</h5>
+                    <div>
+                        <a href="{% url 'all_reminders' %}" class="btn btn-sm btn-outline-light me-2">
+                            <i class="fas fa-list me-1"></i> All
+                        </a>
+                        <a href="{% url 'add_reminder' %}" class="btn btn-sm btn-success">
+                            <i class="fas fa-plus"></i> Add
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if reminders %}
+                    <div class="list-group list-group-flush">
+                        {% for reminder in reminders|slice:":5" %}
+                        <div class="list-group-item bg-transparent text-light border-secondary">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ reminder.type|default:"Reminder" }}</h6>
+                                    <small class="text-muted">{{ reminder.description|default:"No description"|truncatechars:40 }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <small class="d-block">
+                                        {% if reminder.date %}
+                                            {{ reminder.date|date:"M d" }}
+                                        {% else %}
+                                            Soon
+                                        {% endif %}
+                                    </small>
+                                    <span class="badge bg-{% if reminder.status == 'Completed' %}success{% else %}warning{% endif %}">
+                                        {{ reminder.status|default:'Pending' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-bell-slash"></i>
+                        <h5 class="mt-3">No upcoming reminders</h5>
+                        <p class="text-muted">Add reminders to stay on track</p>
+                        <a href="{% url 'add_reminder' %}" class="btn btn-info mt-2">
+                            <i class="fas fa-plus me-1"></i> Add Reminder
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Weekly Performance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="weeklyPerformanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js and Custom JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sample data for health trends
+        const weeklyData = {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            weight: [75.8, 75.6, 75.4, 75.3, 75.2, 75.1, 75.0],
+            calories: [2100, 1950, 2200, 2050, 2150, 2300, 1950],
+            steps: [8200, 7500, 8900, 9200, 8500, 10500, 7800]
+        };
+        
+        const monthlyData = {
+            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            weight: [76.2, 75.8, 75.4, 75.0],
+            calories: [2150, 2100, 2050, 2000],
+            steps: [8000, 8500, 9000, 9200]
+        };
+        
+        const yearlyData = {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            weight: [78.0, 77.5, 77.0, 76.5, 76.0, 75.8, 75.5, 75.3, 75.2, 75.1, 75.0, 74.8],
+            calories: [2400, 2350, 2300, 2250, 2200, 2150, 2100, 2080, 2050, 2020, 2000, 1950],
+            steps: [6500, 7000, 7500, 8000, 8200, 8500, 8700, 8900, 9000, 9200, 9400, 9500]
+        };
+        
+        let currentData = monthlyData;
+        let weightChart, caloriesChart, stepsChart, allMetricsChart;
+        
+        // Initialize Health Trend Charts
+        function initializeTrendCharts() {
+            // Weight Trend Chart
+            const weightCtx = document.getElementById('weightTrendChart').getContext('2d');
+            weightChart = new Chart(weightCtx, {
+                type: 'line',
+                data: {
+                    labels: currentData.labels,
+                    datasets: [{
+                        label: 'Weight (kg)',
+                        data: currentData.weight,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#667eea',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: getChartOptions('Weight (kg)')
+            });
+            
+            // Calories Trend Chart
+            const caloriesCtx = document.getElementById('caloriesTrendChart').getContext('2d');
+            caloriesChart = new Chart(caloriesCtx, {
+                type: 'bar',
+                data: {
+                    labels: currentData.labels,
+                    datasets: [{
+                        label: 'Calories',
+                        data: currentData.calories,
+                        backgroundColor: 'rgba(255, 183, 77, 0.7)',
+                        borderColor: '#ffb74d',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: getChartOptions('Calories', 'bar')
+            });
+            
+            // Steps Trend Chart
+            const stepsCtx = document.getElementById('stepsTrendChart').getContext('2d');
+            stepsChart = new Chart(stepsCtx, {
+                type: 'line',
+                data: {
+                    labels: currentData.labels,
+                    datasets: [
+                        {
+                            label: 'Steps',
+                            data: currentData.steps,
+                            borderColor: '#03dac6',
+                            backgroundColor: 'rgba(3, 218, 198, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#03dac6',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 8
+                        },
+                        {
+                            label: 'Goal',
+                            data: currentData.labels.map(() => 10000),
+                            borderColor: 'rgba(255, 255, 255, 0.3)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: getChartOptions('Steps')
+            });
+            
+            // All Metrics Chart
+            const allCtx = document.getElementById('allMetricsChart').getContext('2d');
+            allMetricsChart = new Chart(allCtx, {
+                type: 'line',
+                data: {
+                    labels: currentData.labels,
+                    datasets: [
+                        {
+                            label: 'Weight (kg)',
+                            data: currentData.weight,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Calories',
+                            data: currentData.calories,
+                            borderColor: '#ffb74d',
+                            backgroundColor: 'rgba(255, 183, 77, 0.1)',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: 'Steps',
+                            data: currentData.steps,
+                            borderColor: '#03dac6',
+                            backgroundColor: 'rgba(3, 218, 198, 0.1)',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.4,
+                            yAxisID: 'y2'
+                        }
+                    ]
+                },
+                options: getAllMetricsOptions()
+            });
+            
+            updateTrendStats();
+        }
+        
+        function getChartOptions(label, type = 'line') {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { 
+                            color: '#fff',
+                            font: { size: 13 }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(30, 30, 30, 0.95)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: type === 'line' ? '#667eea' : '#ffb74d',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    if (label.includes('Weight')) {
+                                        label += context.parsed.y + ' kg';
+                                    } else if (label.includes('Steps')) {
+                                        label += context.parsed.y.toLocaleString();
+                                    } else {
+                                        label += context.parsed.y;
+                                    }
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#ccc' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    y: {
+                        ticks: { 
+                            color: '#ccc',
+                            callback: function(value) {
+                                if (label.includes('Weight')) {
+                                    return value + ' kg';
+                                } else if (label.includes('Steps')) {
+                                    return value.toLocaleString();
+                                }
+                                return value;
+                            }
+                        },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    }
+                }
+            };
+        }
+        
+        function getAllMetricsOptions() {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        labels: { 
+                            color: '#fff',
+                            font: { size: 13 }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#ccc' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        ticks: { 
+                            color: '#ccc',
+                            callback: function(value) {
+                                return value + ' kg';
+                            }
+                        },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        ticks: { color: '#ccc' },
+                        grid: { drawOnChartArea: false }
+                    },
+                    y2: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        ticks: { 
+                            color: '#ccc',
+                            callback: function(value) {
+                                return value.toLocaleString();
+                            }
+                        },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            };
+        }
+        
+        // Update trend stats
+        function updateTrendStats() {
+            const avgWeight = (currentData.weight.reduce((a, b) => a + b, 0) / currentData.weight.length).toFixed(1);
+            const avgCalories = Math.round(currentData.calories.reduce((a, b) => a + b, 0) / currentData.calories.length);
+            const avgSteps = Math.round(currentData.steps.reduce((a, b) => a + b, 0) / currentData.steps.length);
+            
+            document.getElementById('current-weight').textContent = `${avgWeight} kg`;
+            document.getElementById('avg-calories').textContent = avgCalories.toLocaleString();
+            document.getElementById('avg-steps').textContent = avgSteps.toLocaleString();
+        }
+        
+        // Time period buttons
+        document.querySelectorAll('.trend-period').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.trend-period').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                const period = this.getAttribute('data-period');
+                switch(period) {
+                    case 'week':
+                        currentData = weeklyData;
+                        break;
+                    case 'month':
+                        currentData = monthlyData;
+                        break;
+                    case 'year':
+                        currentData = yearlyData;
+                        break;
+                }
+                
+                updateTrendCharts();
+            });
+        });
+        
+        function updateTrendCharts() {
+            if (weightChart) {
+                weightChart.data.labels = currentData.labels;
+                weightChart.data.datasets[0].data = currentData.weight;
+                weightChart.update();
+            }
+            
+            if (caloriesChart) {
+                caloriesChart.data.labels = currentData.labels;
+                caloriesChart.data.datasets[0].data = currentData.calories;
+                caloriesChart.update();
+            }
+            
+            if (stepsChart) {
+                stepsChart.data.labels = currentData.labels;
+                stepsChart.data.datasets[0].data = currentData.steps;
+                stepsChart.update();
+            }
+            
+            if (allMetricsChart) {
+                allMetricsChart.data.labels = currentData.labels;
+                allMetricsChart.data.datasets[0].data = currentData.weight;
+                allMetricsChart.data.datasets[1].data = currentData.calories;
+                allMetricsChart.data.datasets[2].data = currentData.steps;
+                allMetricsChart.update();
+            }
+            
+            updateTrendStats();
+        }
+        
+        // Initialize all charts
+        initializeTrendCharts();
+        
+        // Health Overview Chart (existing)
+        const healthCtx = document.getElementById('healthOverviewChart').getContext('2d');
+        const healthChart = new Chart(healthCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [
+                    {
+                        label: 'Calories',
+                        data: [2200, 2100, 2300, 2000, 2150, 2250, 2050],
+                        borderColor: '#ffb74d',
+                        backgroundColor: 'rgba(255, 183, 77, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Exercise (mins)',
+                        data: [45, 60, 30, 75, 50, 40, 65],
+                        borderColor: '#03dac6',
+                        backgroundColor: 'rgba(3, 218, 198, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#fff', font: { size: 13 } }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(30, 30, 30, 0.95)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#667eea',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#ccc' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    y: {
+                        ticks: { color: '#ccc' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    }
+                }
+            }
+        });
+
+        // Activity Pie Chart (existing)
+        const pieCtx = document.getElementById('activityPieChart').getContext('2d');
+        const pieChart = new Chart(pieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Meals', 'Workouts', 'Medications', 'Sleep', 'Other'],
+                datasets: [{
+                    data: [35, 25, 15, 15, 10],
+                    backgroundColor: [
+                        '#ffb74d',
+                        '#03dac6',
+                        '#667eea',
+                        '#9c27b0',
+                        '#4caf50'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 15
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { 
+                            color: '#fff',
+                            padding: 20,
+                            font: { size: 12 }
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+
+        // Weekly Performance Chart (existing)
+        const weeklyCtx = document.getElementById('weeklyPerformanceChart').getContext('2d');
+        const weeklyChart = new Chart(weeklyCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Daily Score',
+                    data: [78, 85, 92, 76, 89, 95, 82],
+                    backgroundColor: [
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(102, 126, 234, 0.8)'
+                    ],
+                    borderColor: '#667eea',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(30, 30, 30, 0.95)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff'
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#ccc' },
+                        grid: { display: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { 
+                            color: '#ccc',
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    }
+                }
+            }
+        });
+
+        // Time period buttons functionality (existing)
+        const periodButtons = document.querySelectorAll('#today-btn, #week-btn, #month-btn');
+        periodButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                periodButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                const period = this.textContent.trim();
+                console.log(`Loading data for: ${period}`);
+            });
+        });
+
+        // Auto-dismiss alerts
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(tooltipTriggerEl => {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+    
+    // Icon circle styling
+    const style = document.createElement('style');
+    style.textContent = `
+        .icon-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            background: linear-gradient(135deg, var(--bg-color) 0%, var(--bg-color-dark) 100%);
+        }
+        .icon-circle.bg-warning { --bg-color: #ffb74d; --bg-color-dark: #f57c00; }
+        .icon-circle.bg-info { --bg-color: #03dac6; --bg-color-dark: #00bcd4; }
+        .icon-circle.bg-primary { --bg-color: #667eea; --bg-color-dark: #764ba2; }
+        .icon-circle.bg-success { --bg-color: #4caf50; --bg-color-dark: #2e7d32; }
+        .icon-circle.bg-danger { --bg-color: #f44336; --bg-color-dark: #c62828; }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}

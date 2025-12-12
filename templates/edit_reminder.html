@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card p-4">
+        <h2 class="mb-3 text-center"><i class="fas fa-edit me-2"></i>Edit Reminder</h2>
+
+        <form method="POST" action="{{ url_for('edit_reminder', reminder_id=reminder.reminderid) }}">
+            {{ csrf_token() }}
+
+            <!-- Type -->
+            <div class="mb-3">
+                <label for="type" class="form-label"><i class="fas fa-list me-2"></i> Type</label>
+                <select class="form-control" id="type" name="type" required>
+                    <option value="Medication" {% if reminder.type == 'Medication' %}selected{% endif %}>Medication</option>
+                    <option value="Workout" {% if reminder.type == 'Workout' %}selected{% endif %}>Workout</option>
+                    <option value="Meal" {% if reminder.type == 'Meal' %}selected{% endif %}>Meal</option>
+                    <option value="Schedule" {% if reminder.type == 'Schedule' %}selected{% endif %}>Schedule</option>
+                </select>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-3">
+                <label for="description" class="form-label"><i class="fas fa-pencil-alt me-2"></i> Description</label>
+                <input type="text" class="form-control" id="description" name="description"
+                       value="{{ reminder.description or '' }}" required>
+            </div>
+
+            <!-- Date -->
+            <div class="mb-3">
+                <label for="date" class="form-label"><i class="fas fa-calendar me-2"></i> Date</label>
+                <input type="date" class="form-control" id="date" name="date"
+                       value="{{ reminder.date.strftime('%Y-%m-%d') if reminder.date else '' }}" required>
+            </div>
+
+            <!-- Time -->
+            <div class="mb-3">
+                <label for="time" class="form-label"><i class="fas fa-clock me-2"></i> Time</label>
+                <input type="time" class="form-control" id="time" name="time"
+                       value="{{ reminder.time.strftime('%H:%M') if reminder.time else '' }}" required>
+            </div>
+
+            <!-- Status -->
+            <div class="mb-3">
+                <label for="status" class="form-label"><i class="fas fa-info-circle me-2"></i> Status</label>
+                <select class="form-control" id="status" name="status" required>
+                    <option value="Pending" {% if reminder.status == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="Completed" {% if reminder.status == 'Completed' %}selected{% endif %}>Completed</option>
+                </select>
+            </div>
+
+            <!-- Submit Buttons -->
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-save me-2"></i> Save Changes
+            </button>
+
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary w-100 mt-2">
+                <i class="fas fa-arrow-left me-2"></i> Cancel
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

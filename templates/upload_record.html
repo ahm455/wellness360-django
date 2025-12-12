@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="card bg-dark text-light shadow-lg p-4">
+        <h2 class="mb-4 text-center"><i class="fas fa-file-medical-alt me-2"></i>Upload Medical Record</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} text-center">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label">Title</label>
+                <input type="text" name="title" class="form-control bg-dark text-light border-secondary" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-control bg-dark text-light border-secondary" rows="3"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Record Date</label>
+                <input type="date" name="record_date" class="form-control bg-dark text-light border-secondary" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Select File</label>
+                <input type="file" name="file" class="form-control bg-dark text-light border-secondary" required>
+            </div>
+            <button type="submit" class="btn btn-outline-primary w-100">
+                <i class="fas fa-upload me-1"></i> Upload
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
