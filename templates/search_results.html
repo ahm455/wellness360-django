@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Search Results{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <h2>Search Results for "{{ query }}"</h2>
@@ -8,8 +9,21 @@
         <ul class="list-group mt-3">
             {% for result in results %}
                 <li class="list-group-item">
-                    <strong>{{ result.title or result.type }}</strong><br>
-                    <span>{{ result.description or result.date or result.details }}</span>
+                    <strong>
+                        {% if result.title %}
+                            {{ result.title }}
+                        {% else %}
+                            {{ result.type }}
+                        {% endif %}
+                    </strong><br>
+
+                    {% if result.description %}
+                        {{ result.description }}
+                    {% elif result.date %}
+                        {{ result.date }}
+                    {% elif result.details %}
+                        {{ result.details }}
+                    {% endif %}
                 </li>
             {% endfor %}
         </ul>
