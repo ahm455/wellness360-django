@@ -1,0 +1,18 @@
+# render.yaml
+services:
+  - type: web
+    name: wellness360
+    env: python
+    region: oregon
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn wellness360_django.wsgi:application"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: wellness360.onrender.com,localhost,127.0.0.1
+    healthCheckPath: /
+    autoDeploy: true
+    plan: free
