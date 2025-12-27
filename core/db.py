@@ -1,19 +1,17 @@
-import pyodbc
+import sqlite3
 from contextlib import contextmanager
-from datetime import datetime
+from pathlib import Path
+from django.conf import settings
 import logging
 
 logger = logging.getLogger(__name__)
 
+# SQLite database path
+DB_PATH = Path(settings.BASE_DIR) / "db.sqlite3"
+
 def get_db_connection():
     try:
-        conn = pyodbc.connect(
-            r'DRIVER={ODBC Driver 17 for SQL Server};'
-            r'SERVER=.\SQLEXPRESS;'
-            r'DATABASE=wellness360;'
-            r'Trusted_Connection=yes;'
-            r'Connection Timeout=30;'
-        )
+        conn = sqlite3.connect(DB_PATH)
         return conn
     except Exception as e:
         logger.error(f"Database connection failed: {e}")
@@ -33,3 +31,4 @@ def db_cursor():
     finally:
         cursor.close()
         conn.close()
+        
